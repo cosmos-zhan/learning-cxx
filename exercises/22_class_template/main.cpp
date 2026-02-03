@@ -8,10 +8,32 @@ struct Tensor4D {
     T *data;
 
     Tensor4D(unsigned int const shape_[4], T const *data_) {
+
+        std::cout << " Test Construct " << std::endl;
         unsigned int size = 1;
         // TODO: 填入正确的 shape 并计算 size
+        for(unsigned int i = 0; i < 4; ++i) {
+            this->shape[i] = shape_[i];
+            size *= shape_[i];
+            std::cout << " Size: " << size << std::endl;
+        }
         data = new T[size];
+
+        
+        std::cout << " Size: " << size << std::endl;
+        for(unsigned int i = 0; i < size; ++i){
+            std::cout << data_[i] << " "; 
+        }
+        std::cout << std::endl;
+
+
         std::memcpy(data, data_, size * sizeof(T));
+
+        for(unsigned int i = 0; i < size; ++i){
+            std::cout << this->data[i] << " "; 
+        }
+        std::cout << std::endl;
+
     }
     ~Tensor4D() {
         delete[] data;
@@ -28,6 +50,52 @@ struct Tensor4D {
     // 则 `this` 与 `others` 相加时，3 个形状为 `[1, 2, 1, 4]` 的子张量各自与 `others` 对应项相加。
     Tensor4D &operator+=(Tensor4D const &others) {
         // TODO: 实现单向广播的加法
+
+        std::cout << " Test Before ADD " << std::endl;
+        unsigned int size = 1;
+        for(unsigned int i = 0; i < 4; ++i) {
+            ASSERT(others.shape[i] == this->shape[i] || others.shape[i] == 1, "broadcast mismatch");
+            size *= this->shape[i];
+        }
+        std::cout << " Size: " << size << std::endl;
+        for(unsigned int i = 0; i < size; ++i){
+            std::cout << this->data[i] << " "; 
+        }
+        std::cout << std::endl;
+
+        unsigned int stl = 1;
+        unsigned int stk = stl * this->shape[3];
+        unsigned int stj = stk * this->shape[2];
+        unsigned int sti = stj * this->shape[1];
+
+        unsigned int sol = 1;
+        unsigned int sok = sol * others.shape[3];
+        unsigned int soj = sok * others.shape[2];
+        unsigned int soi = soj * others.shape[1];
+
+        for(unsigned int ti = this->shape[0]; ti-- > 0;){
+            unsigned int oi = (others.shape[0] == 1) ? 0u : ti;
+            for(unsigned int tj = this->shape[1]; tj-- > 0;){
+                unsigned int oj = (others.shape[1] == 1) ? 0u : tj;
+                for(unsigned int tk = this->shape[2]; tk-- > 0;){
+                    unsigned int ok = (others.shape[2] == 1) ? 0u : tk;
+                    for(unsigned int tl = this->shape[3]; tl-- > 0;){
+                        unsigned int ol = (others.shape[3] == 1) ? 0u : tl;
+                        std::cout << sti*ti + stj*tj + stk*tk + stl*tl << ":" << this->data[sti*ti + stj*tj + stk*tk + stl*tl] << 
+                        " + " << soi*oi + soj*oj + sok*ok + sol*ol << ":" << others.data[soi*oi + soj*oj + sok*ok + sol*ol] << std::endl;
+                        this->data[sti*ti + stj*tj + stk*tk + stl*tl] += others.data[soi*oi + soj*oj + sok*ok + sol*ol];
+                    }
+                }
+            }
+                
+        }
+
+        std::cout << " Test After ADD " << std::endl;
+        for(unsigned int i = 0; i < size; ++i){
+            std::cout << this->data[i] << " "; 
+        }
+        std::cout << std::endl;
+
         return *this;
     }
 };
